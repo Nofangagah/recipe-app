@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>API Documentation</title>
+  </head>
+  <body>
+    <h3>API TCC - Authentication & Bookmark</h3>
+    <div>Daftar Endpoint API:</div>
+    <table border="1">
+      <thead>
+        <tr>
+          <td>Metode</td>
+          <td>Endpoint</td>
+          <td>Deskripsi</td>
+          <td>Request</td>
+          <td>Contoh Response</td>
+        </tr>
+      </thead>
+      <tbody style="font-family: monospace">
+        <tr>
+          <td>POST</td>
+          <td>/register</td>
+          <td>Registrasi user baru.</td>
+          <td>
+            Content-type: application/json<br />
+            Body:<br />
+            {<br />
+            &nbsp; "name": "User 1",<br />
+            &nbsp; "email": "user1@mail.com",<br />
+            &nbsp; "password": "123456"<br />
+            }
+          </td>
+          <td>
+            {<br />
+            &nbsp; "message": "User registered successfully",<br />
+            &nbsp; "user": {<br />
+            &nbsp;&nbsp; "id": 1,<br />
+            &nbsp;&nbsp; "name": "User 1",<br />
+            &nbsp;&nbsp; "email": "user1@mail.com"<br />
+            &nbsp; }<br />
+            }
+          </td>
+        </tr>
+
+        <tr>
+          <td>POST</td>
+          <td>/login</td>
+          <td>Login menggunakan email dan password.</td>
+          <td>
+            Content-type: application/json<br />
+            Body:<br />
+            {<br />
+            &nbsp; "email": "user1@mail.com",<br />
+            &nbsp; "password": "123456"<br />
+            }
+          </td>
+          <td>
+            {<br />
+            &nbsp; "success": true,<br />
+            &nbsp; "message": "User Logged In Successfully",<br />
+            &nbsp; "accessToken": "...",<br />
+            &nbsp; "refreshToken": "...",<br />
+            &nbsp; "user": { ... }<br />
+            }
+          </td>
+        </tr>
+
+        <tr>
+          <td>DELETE</td>
+          <td>/logout</td>
+          <td>Logout user dan hapus refresh token.</td>
+          <td>
+            Header:<br />
+            Authorization: Bearer [refresh_token]<br />
+          </td>
+          <td>
+            {<br />
+            &nbsp; "success": true,<br />
+            &nbsp; "message": "User Logged Out Successfully"<br />
+            }
+          </td>
+        </tr>
+
+        <tr>
+          <td>POST</td>
+          <td>/bookmarks</td>
+          <td>Menambahkan resep ke bookmark user.</td>
+          <td>
+            Header:<br />
+            Authorization: Bearer [access_token]<br /><br />
+            Body:<br />
+            {<br />
+            &nbsp; "recipeId": 1<br />
+            }
+          </td>
+          <td>
+            {<br />
+            &nbsp; "message": "Resep berhasil dibookmark"<br />
+            }
+          </td>
+        </tr>
+
+        <tr>
+          <td>DELETE</td>
+          <td>/bookmarks/:recipeId</td>
+          <td>Menghapus resep dari bookmark user.</td>
+          <td>
+            Header:<br />
+            Authorization: Bearer [access_token]<br />
+          </td>
+          <td>
+            {<br />
+            &nbsp; "message": "Bookmark berhasil dihapus"<br />
+            }
+          </td>
+        </tr>
+
+        <tr>
+          <td>GET</td>
+          <td>/bookmarks</td>
+          <td>Mengambil semua bookmark milik user yang sedang login.</td>
+          <td>
+            Header:<br />
+            Authorization: Bearer [access_token]<br />
+          </td>
+          <td>
+            [<br />
+            &nbsp; { "recipe": { ... } },<br />
+            &nbsp; ...<br />
+            ]
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </body>
+</html>

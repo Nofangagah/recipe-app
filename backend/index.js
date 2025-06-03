@@ -22,7 +22,7 @@ app.use(Express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
 db.sync().then( async() => {
-   
+   console.log("Database connected successfully");
 }).catch((error) => {
     console.log("error creating table", error)
 });

@@ -123,16 +123,39 @@ const login = async (req, res) => {
 
 const logout = async (req, res) => {
     try {
-        const refreshToken = req.cookies.refreshToken;
-        if(!refreshToken) return res.status(401).json({success: false, message: "refreshToken not found"});
-        const user = await User.findOne({where: {refreshToken: refreshToken}});
-        if(!user.refreshToken) return res.status(401).json({success: false, message: "User not found"});
-        const userId = user.id;
-        await User.update({refreshToken: null}, {where: {id: userId}});
-        res.clearCookie("refreshToken");
-        res.status(200).json({success: true, message: "User Logged Out Successfully"});
+        const authHeader = req.headers['authorization'];
+
+        if (!authHeader || !authHeader.startsWith('Bearer ')) {
+            return res.status(401).json({
+                success: false,
+                message: "Authorization header missing or malformed"
+            });
+        }
+
+        const refreshToken = authHeader.split(' ')[1];
+        const user = await User.findOne({ where: { refreshToken } });
+
+        if (!user) {
+            return res.status(401).json({
+                success: false,
+                message: "User not found or already logged out"
+            });
+        }
+
+        // Hapus refresh token dari DB
+        await User.update({ refreshToken: null }, { where: { id: user.id } });
+
+        return res.status(200).json({
+            success: true,
+            message: "User Logged Out Successfully"
+        });
     } catch (error) {
-        res.status(500).json({success: false, message: "Failed to logout user", error});
+        return res.status(500).json({
+            success: false,
+            message: "Failed to logout user",
+            error: error.message
+        });
     }
-}
+};
+
 export { register, login, logout };
