@@ -9,7 +9,7 @@ steps:
 
   # Step 2: Ambil file firebase credentials
   - name: "gcr.io/cloud-builders/gsutil"
-    args: ["cp", "${_GSA", "backend/gcs-key.json"]
+    args: ["cp", "${_GSA}", "backend/gcs-key.json"]
 
   # Opsional: cek isi .env
   - name: 'ubuntu'
