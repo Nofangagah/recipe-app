@@ -6,6 +6,7 @@ import recipeRoute from "./routes/recipeRoute.js";
 import commentRoute from "./routes/commentRoute.js";
 import ratingRoute from "./routes/ratingRoute.js";
 import bookmarkRoute from "./routes/bookmarkRoute.js";
+import userRoute from "./routes/userRoute.js";
 import cookieParser from "cookie-parser";
 import { db } from './model/index.js'
 
@@ -32,6 +33,7 @@ app.use("/api/recipes", recipeRoute);
 app.use("/api/comments", commentRoute);
 app.use("/api/ratings", ratingRoute);
 app.use("/api/bookmarks", bookmarkRoute);
+app.use("/api/users", userRoute);
 
 app.get("/", (req, res) => {
     res.send("Hello World!");
