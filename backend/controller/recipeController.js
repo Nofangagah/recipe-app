@@ -2,6 +2,8 @@ import Recipe from '../model/recipeModel.js';
 import { uploadToGCS } from '../utils/storage.js';
 import Ingredient from '../model/ingredientsModel.js';
 import Instruction from '../model/instructionModel.js';
+import db from '../config/database.js';
+import { Op } from 'sequelize';
 
 
 const getAllRecipes = async (req, res) => {
@@ -90,61 +92,41 @@ const createRecipe = async (req, res) => {
 
 }
 
+
 const updateRecipe = async (req, res) => {
   try {
     const { id } = req.params;
-    let { title, description, time, ingredients, instructions } = req.body;
+    const { title, description, time } = req.body;
 
-    // Parse jika dikirim sebagai string (via FormData)
-    if (typeof ingredients === 'string') {
-      ingredients = JSON.parse(ingredients);
-    }
-    if (typeof instructions === 'string') {
-      instructions = JSON.parse(instructions);
-    }
-
+    // Cari resep
     const recipe = await Recipe.findByPk(id);
-    if (!recipe) return res.status(404).json({ message: "Resep tidak ditemukan" });
+    if (!recipe) {
+      return res.status(404).json({ message: "Resep tidak ditemukan" });
+    }
 
+    // Cek kepemilikan
     if (recipe.userId !== req.user.id) {
       return res.status(403).json({ message: "Tidak diizinkan" });
     }
 
+    // Upload image jika ada file
     let imageUrl = recipe.image;
     if (req.file) {
       imageUrl = await uploadToGCS(req.file);
     }
 
-    // Perbarui data dasar resep
-    await recipe.update({ title, description, time, image: imageUrl });
+    // Update field
+    await recipe.update({
+      title: title || recipe.title,
+      description: description || recipe.description,
+      time: time || recipe.time,
+      image: imageUrl
+    });
 
-    // Hapus semua bahan & instruksi lama
-    await Ingredient.destroy({ where: { recipeId: id } });
-    await Instruction.destroy({ where: { recipeId: id } });
-
-    // Tambahkan ulang bahan
-    if (Array.isArray(ingredients)) {
-      await Promise.all(ingredients.map(ing =>
-        Ingredient.create({ ...ing, recipeId: id })
-      ));
-    }
-
-    // Tambahkan ulang instruksi
-    if (Array.isArray(instructions)) {
-      await Promise.all(instructions.map((inst, idx) =>
-        Instruction.create({
-          order: idx + 1,
-          description: inst.step || inst.description,
-          recipeId: id
-        })
-      ));
-    }
-
-    res.status(200).json({ message: "Resep berhasil diperbarui" });
-
+    return res.status(200).json({ message: "Resep berhasil diperbarui" });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Gagal update resep" });
+    console.error("Gagal update resep:", err);
+    return res.status(500).json({ message: "Terjadi kesalahan saat memperbarui resep" });
   }
 };
 
