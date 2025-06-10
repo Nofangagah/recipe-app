@@ -1,4 +1,4 @@
-import  Express  from "express";
+import Express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import authRoute from "./routes/authRoute.js";
@@ -8,8 +8,8 @@ import ratingRoute from "./routes/ratingRoute.js";
 import bookmarkRoute from "./routes/bookmarkRoute.js";
 import userRoute from "./routes/userRoute.js";
 import cookieParser from "cookie-parser";
-import { db } from './model/index.js'
-
+import { db } from './model/index.js';
+import setupSwagger from './swagger.js'; 
 
 dotenv.config();
 
@@ -22,10 +22,13 @@ app.use(Express.json());
 app.use(Express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-db.sync().then( async() => {
-   console.log("Database connected successfully");
+
+setupSwagger(app);
+
+db.sync().then(async () => {
+  console.log("Database connected successfully");
 }).catch((error) => {
-    console.log("error creating table", error)
+  console.log("error creating table", error);
 });
 
 app.use("/api/auth", authRoute);
@@ -36,10 +39,10 @@ app.use("/api/bookmarks", bookmarkRoute);
 app.use("/api/users", userRoute);
 
 app.get("/", (req, res) => {
-    res.send("Hello World!");
+  res.send("Hello World!");
 });
 
 app.listen(port, () => {
-    console.log(`Server running on port ${port}`);
+  console.log(`Server running on port ${port}`);
+  console.log(`Swagger docs available at http://localhost:${port}/api-docs`);
 });
-

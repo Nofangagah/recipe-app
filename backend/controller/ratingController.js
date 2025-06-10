@@ -3,6 +3,42 @@ import Recipe from '../model/recipeModel.js';
 import Sequelize from 'sequelize';
 
 
+/**
+ * @swagger
+ * /ratings/recipe/{recipeId}:
+ *   post:
+ *     summary: Beri atau perbarui rating untuk resep
+ *     tags: [Ratings]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: recipeId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID resep yang ingin diberi rating
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               rating:
+ *                 type: integer
+ *                 minimum: 1
+ *                 maximum: 5
+ *     responses:
+ *       200:
+ *         description: Rating berhasil ditambahkan atau diperbarui
+ *       400:
+ *         description: Rating tidak valid
+ *       404:
+ *         description: Resep tidak ditemukan
+ *       500:
+ *         description: Gagal memberi rating
+ */
  const rateRecipe = async (req, res) => {
   const { recipeId } = req.params;
   const { rating } = req.body;
@@ -34,6 +70,36 @@ import Sequelize from 'sequelize';
   }
 };
 
+/**
+ * @swagger
+ * /ratings/recipe/{recipeId}/average:
+ *   get:
+ *     summary: Ambil rata-rata rating untuk resep
+ *     tags: [Ratings]
+ *     parameters:
+ *       - in: path
+ *         name: recipeId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Rata-rata rating dan jumlah voter
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 average:
+ *                   type: number
+ *                   example: 4.25
+ *                 count:
+ *                   type: integer
+ *                   example: 12
+ *       500:
+ *         description: Gagal mengambil rating
+ */
+
  const getAverageRating = async (req, res) => {
   const { recipeId } = req.params;
 
@@ -56,6 +122,40 @@ import Sequelize from 'sequelize';
     return res.status(500).json({ message: 'Gagal mengambil rating' });
   }
 };
+
+
+/**
+ * @swagger
+ * /ratings/user:
+ *   get:
+ *     summary: Ambil semua rating yang diberikan user
+ *     tags: [Ratings]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Daftar rating user
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   recipe:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: integer
+ *                       title:
+ *                         type: string
+ *                       image:
+ *                         type: string
+ *                   rating:
+ *                     type: integer
+ *       500:
+ *         description: Gagal mengambil rating user
+ */
  const getUserRatings = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -75,6 +175,29 @@ import Sequelize from 'sequelize';
     res.status(500).json({ message: 'Gagal mengambil rating user' });
   }
 };
+
+/**
+ * @swagger
+ * /ratings/recipe/{recipeId}:
+ *   delete:
+ *     summary: Hapus rating user untuk resep tertentu
+ *     tags: [Ratings]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: recipeId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Rating berhasil dihapus
+ *       404:
+ *         description: Rating tidak ditemukan
+ *       500:
+ *         description: Gagal menghapus rating
+ */
  const deleteUserRating = async (req, res) => {
   const { recipeId } = req.params;
 
@@ -97,6 +220,47 @@ import Sequelize from 'sequelize';
   }
 };
 ;
+/**
+ * @swagger
+ * /ratings/top:
+ *   get:
+ *     summary: Ambil resep dengan rating tertinggi
+ *     tags: [Ratings]
+ *     parameters:
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 5
+ *         description: Jumlah maksimum resep yang ingin diambil
+ *     responses:
+ *       200:
+ *         description: Daftar resep dengan rating tertinggi
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   recipeId:
+ *                     type: integer
+ *                   averageRating:
+ *                     type: number
+ *                   totalVotes:
+ *                     type: integer
+ *                   recipe:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: integer
+ *                       title:
+ *                         type: string
+ *                       image:
+ *                         type: string
+ *       500:
+ *         description: Gagal mengambil resep teratas
+ */
 
  const getTopRatedRecipes = async (req, res) => {
   const limit = parseInt(req.query.limit) || 5;

@@ -1,5 +1,62 @@
 import User from '../model/userModel.js';
 
+
+
+/**
+ * @swagger
+ * /users/profile:
+ *   put:
+ *     summary: Edit profil pengguna (khusus role "user")
+ *     tags: [User]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 example: Budi Santoso
+ *     responses:
+ *       200:
+ *         description: Profil berhasil diperbarui
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Profil berhasil diperbarui
+ *                 user:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: integer
+ *                       example: 1
+ *                     name:
+ *                       type: string
+ *                       example: Budi Santoso
+ *                     email:
+ *                       type: string
+ *                       example: budi@example.com
+ *                     role:
+ *                       type: string
+ *                       example: user
+ *       400:
+ *         description: Data user tidak valid atau nama kosong
+ *       403:
+ *         description: Role tidak diizinkan mengedit profil
+ *       404:
+ *         description: User tidak ditemukan
+ *       500:
+ *         description: Terjadi kesalahan saat memperbarui profil
+ */
+
+
 const editProfile = async (req, res) => {
   const { id, role } = req.user;
 

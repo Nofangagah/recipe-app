@@ -5,6 +5,24 @@ import Instruction from '../model/instructionModel.js';
 import db from '../config/database.js';
 import { Op } from 'sequelize';
 
+/**
+ * @swagger
+ * /recipes:
+ *   get:
+ *     summary: Ambil semua resep
+ *     tags: [Recipes]
+ *     responses:
+ *       200:
+ *         description: Daftar resep berhasil diambil
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Recipe'
+ *       500:
+ *         description: Terjadi kesalahan server
+ */
 
 const getAllRecipes = async (req, res) => {
   try {
@@ -22,6 +40,27 @@ const getAllRecipes = async (req, res) => {
     res.status(500).json({ message: "Terjadi kesalahan server" });
   }
 }
+/**
+ * @swagger
+ * /recipes/{id}:
+ *   get:
+ *     summary: Ambil detail resep berdasarkan ID
+ *     tags: [Recipes]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID resep
+ *     responses:
+ *       200:
+ *         description: Detail resep berhasil diambil
+ *       404:
+ *         description: Resep tidak ditemukan
+ *       500:
+ *         description: Terjadi kesalahan server
+ */
 const getRecipeById = async (req, res) => {
   const { id } = req.params;
 
@@ -44,6 +83,44 @@ const getRecipeById = async (req, res) => {
   }
 }
 
+/**
+ * @swagger
+ * /recipes:
+ *   post:
+ *     summary: Tambah resep baru
+ *     tags: [Recipes]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               title:
+ *                 type: string
+ *               description:
+ *                 type: string
+ *               time:
+ *                 type: string
+ *               image:
+ *                 type: string
+ *                 format: binary
+ *               ingredients:
+ *                 type: string
+ *                 example: '[{"name": "Garam", "quantity": "1 sdt"}]'
+ *               instructions:
+ *                 type: string
+ *                 example: '[{"step": 1, "description": "Campur semua bahan."}]'
+ *     responses:
+ *       201:
+ *         description: Resep berhasil ditambahkan
+ *       400:
+ *         description: Foto wajib diisi
+ *       500:
+ *         description: Terjadi kesalahan server
+ */
 
 const createRecipe = async (req, res) => {
   try {
@@ -91,6 +168,47 @@ const createRecipe = async (req, res) => {
   }
 
 }
+/**
+ * @swagger
+ * /recipes/{id}:
+ *   put:
+ *     summary: Perbarui resep (hanya milik sendiri)
+ *     tags: [Recipes]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID resep
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               title:
+ *                 type: string
+ *               description:
+ *                 type: string
+ *               time:
+ *                 type: string
+ *               image:
+ *                 type: string
+ *                 format: binary
+ *     responses:
+ *       200:
+ *         description: Resep berhasil diperbarui
+ *       403:
+ *         description: Tidak diizinkan
+ *       404:
+ *         description: Resep tidak ditemukan
+ *       500:
+ *         description: Terjadi kesalahan saat memperbarui resep
+ */
 
 
 const updateRecipe = async (req, res) => {
@@ -130,6 +248,31 @@ const updateRecipe = async (req, res) => {
   }
 };
 
+/**
+ * @swagger
+ * /recipes/{id}:
+ *   delete:
+ *     summary: Hapus resep (hanya milik sendiri)
+ *     tags: [Recipes]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID resep
+ *     responses:
+ *       200:
+ *         description: Resep berhasil dihapus
+ *       403:
+ *         description: Tidak diizinkan
+ *       404:
+ *         description: Resep tidak ditemukan
+ *       500:
+ *         description: Gagal menghapus resep
+ */
 
 const deleteRecipe = async (req, res) => {
   try {

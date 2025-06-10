@@ -3,7 +3,88 @@ import Recipe from '../model/recipeModel.js';
 import User from '../model/userModel.js';
 import { Op } from 'sequelize';
 
-// 📌 Ambil semua komentar dari resep (dengan reply & pagination)
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     Comment:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: integer
+ *         content:
+ *           type: string
+ *         recipeId:
+ *           type: integer
+ *         parentId:
+ *           type: integer
+ *           nullable: true
+ *         userId:
+ *           type: integer
+ *         user:
+ *           type: object
+ *           properties:
+ *             id:
+ *               type: integer
+ *             name:
+ *               type: string
+ *         replies:
+ *           type: array
+ *           items:
+ *             $ref: '#/components/schemas/Comment'
+ *         createdAt:
+ *           type: string
+ *           format: date-time
+ *         updatedAt:
+ *           type: string
+ *           format: date-time
+ */
+
+
+/**
+ * @swagger
+ * /recipes/{recipeId}/comments:
+ *   get:
+ *     summary: Ambil semua komentar dari resep tertentu (termasuk balasan)
+ *     tags: [Comments]
+ *     parameters:
+ *       - in: path
+ *         name: recipeId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID resep
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         description: Nomor halaman
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *         description: Jumlah komentar per halaman
+ *     responses:
+ *       200:
+ *         description: Komentar berhasil diambil
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 comments:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Comment'
+ *                 totalPages:
+ *                   type: integer
+ *                 currentPage:
+ *                   type: integer
+ *       500:
+ *         description: Gagal mengambil komentar
+ */
 const getCommentsByRecipe = async (req, res) => {
   try {
     const recipeId = req.params.recipeId;
@@ -28,7 +109,7 @@ const getCommentsByRecipe = async (req, res) => {
           include: [
             {
               model: User,
-                as: 'user',
+              as: 'user',
               attributes: ['id', 'name'],
             },
           ],
@@ -50,13 +131,62 @@ const getCommentsByRecipe = async (req, res) => {
   }
 };
 
-// ➕ Tambah komentar atau balasan (nested comment)
+/**
+ * @swagger
+ * /recipes/{recipeId}/comments:
+ *   post:
+ *     summary: Tambahkan komentar atau balasan pada resep
+ *     tags: [Comments]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: recipeId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID resep
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - content
+ *             properties:
+ *               content:
+ *                 type: string
+ *                 example: "Resepnya sangat enak!"
+ *               parentId:
+ *                 type: integer
+ *                 nullable: true
+ *                 example: null
+ *     responses:
+ *       201:
+ *         description: Komentar berhasil ditambahkan
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 comment:
+ *                   $ref: '#/components/schemas/Comment'
+ *       400:
+ *         description: Validasi gagal (komentar kosong, terlalu panjang, atau balasan tidak valid)
+ *       404:
+ *         description: Resep tidak ditemukan
+ *       500:
+ *         description: Gagal menambahkan komentar
+ */
+
 const createComment = async (req, res) => {
-  const recipeId = parseInt(req.params.recipeId.trim(), 10); // Perbaikan penting
+  const recipeId = parseInt(req.params.recipeId.trim(), 10);
   let { content, parentId } = req.body;
 
   try {
-    // Normalisasi dan validasi parentId
     if (typeof parentId === 'string') {
       parentId = parentId.trim();
       if (parentId.toLowerCase() === 'null' || parentId === '') {
@@ -72,11 +202,9 @@ const createComment = async (req, res) => {
       return res.status(400).json({ message: 'Komentar maksimal 300 karakter' });
     }
 
-    // Pastikan resep ada
     const recipe = await Recipe.findByPk(recipeId);
     if (!recipe) return res.status(404).json({ message: 'Resep tidak ditemukan' });
 
-    // Validasi nested reply hanya satu level
     if (parentId) {
       const parentComment = await Comment.findByPk(parentId);
       if (!parentComment) {
@@ -87,7 +215,6 @@ const createComment = async (req, res) => {
       }
     }
 
-    // Simpan komentar
     const comment = await Comment.create({
       userId: req.user.id,
       recipeId,
@@ -102,7 +229,39 @@ const createComment = async (req, res) => {
   }
 };
 
-// ❌ Hapus komentar (hanya pemilik atau admin)
+/**
+ * @swagger
+ * /comments/{id}:
+ *   delete:
+ *     summary: Hapus komentar (oleh pemilik atau admin)
+ *     tags: [Comments]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID komentar yang akan dihapus
+ *     responses:
+ *       200:
+ *         description: Komentar berhasil dihapus
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *       403:
+ *         description: Tidak memiliki izin untuk menghapus komentar
+ *       404:
+ *         description: Komentar tidak ditemukan
+ *       500:
+ *         description: Gagal menghapus komentar
+ */
+
 const deleteComment = async (req, res) => {
   const { id } = req.params;
   try {
