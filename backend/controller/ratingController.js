@@ -39,28 +39,21 @@ import Sequelize from 'sequelize';
 
   try {
     const result = await Rating.findOne({
-  where: { recipeId },
-  attributes: [
-    [Sequelize.fn('AVG', Sequelize.col('rating')), 'average'],
-    [Sequelize.fn('COUNT', Sequelize.col('rating')), 'count'],
-  ],
-  raw: true
-});
-
-    if (!result.length) {
-      return res.status(200).json({ average: 0, count: 0 });
-    }
-
-    const total = result.reduce((sum, r) => sum + r.rating, 0);
-    const average = total / result.length;
-
-    res.status(200).json({
-      average: parseFloat(average.toFixed(2)),
-      count: result.length,
+      where: { recipeId },
+      attributes: [
+        [Sequelize.fn('AVG', Sequelize.col('rating')), 'average'],
+        [Sequelize.fn('COUNT', Sequelize.col('rating')), 'count'],
+      ],
+      raw: true,
     });
+
+    const average = result.average ? parseFloat(parseFloat(result.average).toFixed(2)) : 0;
+    const count = result.count ? parseInt(result.count) : 0;
+
+    return res.status(200).json({ average, count });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Gagal mengambil rating' });
+    console.error('Gagal mengambil rating:', err);
+    return res.status(500).json({ message: 'Gagal mengambil rating' });
   }
 };
  const getUserRatings = async (req, res) => {
